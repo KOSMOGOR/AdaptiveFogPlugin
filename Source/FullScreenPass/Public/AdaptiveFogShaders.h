@@ -4,19 +4,19 @@
 #include "SceneTexturesConfig.h"
 
 
-class FFullScreenPassVS : public FGlobalShader
+class FAdaptiveFogVS : public FGlobalShader
 {
 public:
-	DECLARE_GLOBAL_SHADER(FFullScreenPassVS);
+	DECLARE_GLOBAL_SHADER(FAdaptiveFogVS);
 
-	FFullScreenPassVS() = default;
-	FFullScreenPassVS(const ShaderMetaType::CompiledShaderInitializerType& Initializer) : FGlobalShader(Initializer) {}
+	FAdaptiveFogVS() = default;
+	FAdaptiveFogVS(const ShaderMetaType::CompiledShaderInitializerType& Initializer) : FGlobalShader(Initializer) {}
 };
 
-class FFullScreenPassPS : public FGlobalShader
+class FAdaptiveFogPS : public FGlobalShader
 {
-	DECLARE_GLOBAL_SHADER(FFullScreenPassPS);
-	SHADER_USE_PARAMETER_STRUCT(FFullScreenPassPS, FGlobalShader);
+	DECLARE_GLOBAL_SHADER(FAdaptiveFogPS);
+	SHADER_USE_PARAMETER_STRUCT(FAdaptiveFogPS, FGlobalShader);
 
 	BEGIN_SHADER_PARAMETER_STRUCT(FParameters, )
 		RENDER_TARGET_BINDING_SLOTS()

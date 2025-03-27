@@ -3,4 +3,4 @@
 #include "CoreMinimal.h"
 #include "Logging/LogMacros.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(FullScreenPass, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(AdaptiveFog, Log, All);

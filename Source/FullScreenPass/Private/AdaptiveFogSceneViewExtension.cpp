@@ -1,5 +1,5 @@
-#include "FullScreenPassSceneViewExtension.h"
-#include "FullScreenPassShaders.h"
+#include "AdaptiveFogSceneViewExtension.h"
+#include "AdaptiveFogShaders.h"
 
 #include "FXRenderingUtils.h"
 #include "PostProcess/PostProcessInputs.h"
@@ -19,13 +19,13 @@ static TAutoConsoleVariable<float> CVarEffectStrenght(
 	TEXT("Controls an amount of depth buffer blending to the base color."));
 
 
-FFullScreenPassSceneViewExtension::FFullScreenPassSceneViewExtension(const FAutoRegister& AutoRegister) :
+FAdaptiveFogSceneViewExtension::FAdaptiveFogSceneViewExtension(const FAutoRegister& AutoRegister) :
 	FSceneViewExtensionBase(AutoRegister)
 {
 
 }
 
-void FFullScreenPassSceneViewExtension::PrePostProcessPass_RenderThread(FRDGBuilder& GraphBuilder, const FSceneView& View, const FPostProcessingInputs& Inputs)
+void FAdaptiveFogSceneViewExtension::PrePostProcessPass_RenderThread(FRDGBuilder& GraphBuilder, const FSceneView& View, const FPostProcessingInputs& Inputs)
 {
 	if (CVarEnabled->GetInt() == 0)
 	{
@@ -55,10 +55,10 @@ void FFullScreenPassSceneViewExtension::PrePostProcessPass_RenderThread(FRDGBuil
 	FScreenPassRenderTarget ResultRenderTarget = FScreenPassRenderTarget(ResultTexture, SceneColor.ViewRect, ERenderTargetLoadAction::EClear);
 	
 	FGlobalShaderMap* GlobalShaderMap = GetGlobalShaderMap(GMaxRHIFeatureLevel);
-	TShaderMapRef<FFullScreenPassVS> ScreenPassVS(GlobalShaderMap);
-	TShaderMapRef<FFullScreenPassPS> ScreenPassPS(GlobalShaderMap);
+	TShaderMapRef<FAdaptiveFogVS> ScreenPassVS(GlobalShaderMap);
+	TShaderMapRef<FAdaptiveFogPS> ScreenPassPS(GlobalShaderMap);
 
-	FFullScreenPassPS::FParameters* Parameters = GraphBuilder.AllocParameters<FFullScreenPassPS::FParameters>();
+	FAdaptiveFogPS::FParameters* Parameters = GraphBuilder.AllocParameters<FAdaptiveFogPS::FParameters>();
 	Parameters->View = View.ViewUniformBuffer;
 	Parameters->SceneTexturesStruct = Inputs.SceneTextures;
 	Parameters->Strenght = CVarEffectStrenght->GetFloat();
@@ -67,7 +67,7 @@ void FFullScreenPassSceneViewExtension::PrePostProcessPass_RenderThread(FRDGBuil
 
 	AddDrawScreenPass(
 		GraphBuilder,
-		RDG_EVENT_NAME("FullScreenPassShader"),
+		RDG_EVENT_NAME("AdaptiveFogShader"),
 		View,
 		Viewport,
 		Viewport,
