@@ -3,7 +3,13 @@
 #include "/Engine/Private/SceneTexturesCommon.ush"
 
 
-float Strenght;
+float3 FogColor;
+float MaxFogFactor;
+float FogCurve;
+float FogStart;
+float BloomThreshold;
+float BloomPower;
+float BloomWidth;
 
 void MainVS(
 	in float4 InPosition : ATTRIBUTE0,
@@ -21,5 +27,5 @@ float4 MainPS(
 	float2 uv = UVAndScreenPos.xy;
     float4 res = CalcSceneColorAndDepth(uv);
 	
-    return saturate(float4(lerp(res.xyz, res.www*0.00001f, saturate(Strenght)), 1.f));
+    return saturate(float4(lerp(res.xyz, res.www*0.00001f, saturate(0.5f)), 1.f));
 }

@@ -7,16 +7,39 @@
 
 
 static TAutoConsoleVariable<int32> CVarEnabled(
-	TEXT("r.FSP"),
+	TEXT("r.AFog"),
 	1,
 	TEXT("Controls Full Screen Pass plugin\n")
 	TEXT(" 0: disabled\n")
 	TEXT(" 1: enabled (default)"));
 
-static TAutoConsoleVariable<float> CVarEffectStrenght(
-	TEXT("r.FSP.EffectStrenght"),
-	0.1f,
-	TEXT("Controls an amount of depth buffer blending to the base color."));
+static TAutoConsoleVariable<float3> CVarFogColor(
+	TEXT("r.AFog.FogColor"),
+	float3(0.9f, 0.9f, 0.9f));
+
+static TAutoConsoleVariable<float> CVarMaxFogFactor(
+	TEXT("r.AFog.MaxFogFactor"),
+	0.8f);
+
+static TAutoConsoleVariable<float> CVarFogCurve(
+	TEXT("r.AFog.FogCurve"),
+	1.5f);
+
+static TAutoConsoleVariable<float> CVarFogStart(
+	TEXT("r.AFog.FogStart"),
+	0.05f);
+
+static TAutoConsoleVariable<float> CVarBloomThreshold(
+	TEXT("r.AFog.BloomThreshold"),
+	10.25f);
+
+static TAutoConsoleVariable<float> CVarBloomPower(
+	TEXT("r.AFog.BloomPower"),
+	10f);
+
+static TAutoConsoleVariable<float> CVarBloomWidth(
+	TEXT("r.AFog.BloomWidth"),
+	0.2f);
 
 
 FAdaptiveFogSceneViewExtension::FAdaptiveFogSceneViewExtension(const FAutoRegister& AutoRegister) :
@@ -61,7 +84,13 @@ void FAdaptiveFogSceneViewExtension::PrePostProcessPass_RenderThread(FRDGBuilder
 	FAdaptiveFogPS::FParameters* Parameters = GraphBuilder.AllocParameters<FAdaptiveFogPS::FParameters>();
 	Parameters->View = View.ViewUniformBuffer;
 	Parameters->SceneTexturesStruct = Inputs.SceneTextures;
-	Parameters->Strenght = CVarEffectStrenght->GetFloat();
+	Parameters->FogColor = CVarFogColor->GetFloat3();
+	Parameters->MaxFogFactor = CVarMaxFogFactor->GetFloat();
+	Parameters->FogCurve = CVarFogCurve->GetFloat();
+	Parameters->FogStart = CVarFogStart->GetFloat();
+	Parameters->BloomThreshold = CVarBloomThreshold->GetFloat();
+	Parameters->BloomPower = CVarBloomPower->GetFloat();
+	Parameters->BloomWidth = CVarBloomWidth->GetFloat();
 
 	Parameters->RenderTargets[0] = ResultRenderTarget.GetRenderTargetBinding();
 
