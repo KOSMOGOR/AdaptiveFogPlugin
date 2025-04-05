@@ -13,33 +13,35 @@ static TAutoConsoleVariable<int32> CVarEnabled(
 	TEXT(" 0: disabled\n")
 	TEXT(" 1: enabled (default)"));
 
-static TAutoConsoleVariable<float3> CVarFogColor(
-	TEXT("r.AFog.FogColor"),
-	float3(0.9f, 0.9f, 0.9f));
-
 static TAutoConsoleVariable<float> CVarMaxFogFactor(
 	TEXT("r.AFog.MaxFogFactor"),
-	0.8f);
+	0.8f,
+	TEXT("Description"));
 
 static TAutoConsoleVariable<float> CVarFogCurve(
 	TEXT("r.AFog.FogCurve"),
-	1.5f);
+	1.5f,
+	TEXT("Description"));
 
 static TAutoConsoleVariable<float> CVarFogStart(
 	TEXT("r.AFog.FogStart"),
-	0.05f);
+	0.05f,
+	TEXT("Description"));
 
 static TAutoConsoleVariable<float> CVarBloomThreshold(
 	TEXT("r.AFog.BloomThreshold"),
-	10.25f);
+	10.25f,
+	TEXT("Description"));
 
 static TAutoConsoleVariable<float> CVarBloomPower(
 	TEXT("r.AFog.BloomPower"),
-	10f);
+	10.0f,
+	TEXT("Description"));
 
 static TAutoConsoleVariable<float> CVarBloomWidth(
 	TEXT("r.AFog.BloomWidth"),
-	0.2f);
+	0.2f,
+	TEXT("Description"));
 
 
 FAdaptiveFogSceneViewExtension::FAdaptiveFogSceneViewExtension(const FAutoRegister& AutoRegister) :
@@ -76,33 +78,54 @@ void FAdaptiveFogSceneViewExtension::PrePostProcessPass_RenderThread(FRDGBuilder
 
 	FRDGTexture* ResultTexture = GraphBuilder.CreateTexture(SceneColorDesc, TEXT("FulllScreenPassResult"));
 	FScreenPassRenderTarget ResultRenderTarget = FScreenPassRenderTarget(ResultTexture, SceneColor.ViewRect, ERenderTargetLoadAction::EClear);
+
+	FRDGTexture* BloomTexture = GraphBuilder.CreateTexture(SceneColorDesc, TEXT("FulllScreenPassBloom"));
+	FScreenPassRenderTarget BloomRenderTarget = FScreenPassRenderTarget(BloomTexture, SceneColor.ViewRect, ERenderTargetLoadAction::EClear);
 	
 	FGlobalShaderMap* GlobalShaderMap = GetGlobalShaderMap(GMaxRHIFeatureLevel);
 	TShaderMapRef<FAdaptiveFogVS> ScreenPassVS(GlobalShaderMap);
-	TShaderMapRef<FAdaptiveFogPS> ScreenPassPS(GlobalShaderMap);
+	TShaderMapRef<FAdaptiveFogPSBloom> ScreenPassPSBloom(GlobalShaderMap);
+	TShaderMapRef<FAdaptiveFogPSFinal> ScreenPassPSFinal(GlobalShaderMap);
 
-	FAdaptiveFogPS::FParameters* Parameters = GraphBuilder.AllocParameters<FAdaptiveFogPS::FParameters>();
-	Parameters->View = View.ViewUniformBuffer;
-	Parameters->SceneTexturesStruct = Inputs.SceneTextures;
-	Parameters->FogColor = CVarFogColor->GetFloat3();
-	Parameters->MaxFogFactor = CVarMaxFogFactor->GetFloat();
-	Parameters->FogCurve = CVarFogCurve->GetFloat();
-	Parameters->FogStart = CVarFogStart->GetFloat();
-	Parameters->BloomThreshold = CVarBloomThreshold->GetFloat();
-	Parameters->BloomPower = CVarBloomPower->GetFloat();
-	Parameters->BloomWidth = CVarBloomWidth->GetFloat();
+	FAdaptiveFogPSBloom::FParameters* ParametersBloom = GraphBuilder.AllocParameters<FAdaptiveFogPSBloom::FParameters>();
+	ParametersBloom->View = View.ViewUniformBuffer;
+	ParametersBloom->SceneTexturesStruct = Inputs.SceneTextures;
+	ParametersBloom->BloomThreshold = CVarBloomThreshold->GetFloat();
+	ParametersBloom->BloomPower = CVarBloomPower->GetFloat();
+	ParametersBloom->BloomWidth = CVarBloomWidth->GetFloat();
+	ParametersBloom->RenderTargets[0] = BloomRenderTarget.GetRenderTargetBinding();
 
-	Parameters->RenderTargets[0] = ResultRenderTarget.GetRenderTargetBinding();
+	FAdaptiveFogPSFinal::FParameters* ParametersFinal = GraphBuilder.AllocParameters<FAdaptiveFogPSFinal::FParameters>();
+	ParametersFinal->View = View.ViewUniformBuffer;
+	ParametersFinal->SceneTexturesStruct = Inputs.SceneTextures;
+	ParametersFinal->FogColor = FVector3f(0.9f, 0.9f, 0.9f);
+	ParametersFinal->MaxFogFactor = CVarMaxFogFactor->GetFloat();
+	ParametersFinal->FogCurve = CVarFogCurve->GetFloat();
+	ParametersFinal->FogStart = CVarFogStart->GetFloat();
+	ParametersFinal->BloomTexture = BloomTexture;
+	ParametersFinal->RenderTargets[0] = ResultRenderTarget.GetRenderTargetBinding();
+
 
 	AddDrawScreenPass(
 		GraphBuilder,
-		RDG_EVENT_NAME("AdaptiveFogShader"),
+		RDG_EVENT_NAME("AdaptiveFogShaderBloom"),
 		View,
 		Viewport,
 		Viewport,
 		ScreenPassVS,
-		ScreenPassPS,
-		Parameters
+		ScreenPassPSBloom,
+		ParametersBloom
+	);
+
+	AddDrawScreenPass(
+		GraphBuilder,
+		RDG_EVENT_NAME("AdaptiveFogShaderBloom"),
+		View,
+		Viewport,
+		Viewport,
+		ScreenPassVS,
+		ScreenPassPSFinal,
+		ParametersFinal
 	);
 
 	AddCopyTexturePass(GraphBuilder, ResultTexture, SceneColor.Texture);

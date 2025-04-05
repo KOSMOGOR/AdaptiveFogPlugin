@@ -1,3 +1,6 @@
+.vscode/
+
 Binaries/
 Intermediate/
-.vscode/
+Config/
+TempBuild/
