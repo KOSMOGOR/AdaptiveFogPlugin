@@ -103,6 +103,7 @@ void FAdaptiveFogSceneViewExtension::PrePostProcessPass_RenderThread(FRDGBuilder
 	ParametersFinal->FogCurve = CVarFogCurve->GetFloat();
 	ParametersFinal->FogStart = CVarFogStart->GetFloat();
 	ParametersFinal->BloomTexture = BloomTexture;
+	ParametersFinal->BloomSampler = TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
 	ParametersFinal->RenderTargets[0] = ResultRenderTarget.GetRenderTargetBinding();
 
 

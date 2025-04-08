@@ -42,5 +42,6 @@ class FAdaptiveFogPSFinal : public FGlobalShader
 		SHADER_PARAMETER(float, MaxFogFactor)
 		SHADER_PARAMETER(float, FogCurve)
 		SHADER_PARAMETER(float, FogStart)
+		SHADER_PARAMETER_SAMPLER(SamplerState, BloomSampler)
 	END_SHADER_PARAMETER_STRUCT()
 };
